@@ -1,10 +1,15 @@
 # Ranarokx
 
-Helpers for a private **Hercules** RO server and an **OpenKore** bot host.
+One-shot helpers for:
 
-## 1) Hercules (game server) — Debian 12
+1. **Hercules** on a Debian 12 game VPS (1 GB RAM OK)
+2. **OpenKore** on a second Linux box, connected to that Hercules server
 
-On the game VPS:
+---
+
+## 1) Hercules (game server)
+
+On the **game** VPS:
 
 ```bash
 sudo apt-get update && sudo apt-get install -y git
@@ -13,40 +18,35 @@ cd Ranarokx
 sudo SERVER_IP=YOUR.PUBLIC.IP bash scripts/install-hercules-debian12.sh
 ```
 
-(See `scripts/install-hercules-debian12.sh` when that PR is merged, or use branch `cursor/hercules-debian-install-530f`.)
+Credentials: `/home/hercuser/hercules-credentials.txt`  
+Defaults: `test`/`test123`, GM `admin`/`admin123`, ports **6900 / 6121 / 5121**.
 
-Defaults: player `test`/`test123`, GM `admin`/`admin123`, ports `6900` / `6121` / `5121`.
+The script applies the battle-tested fixes (swap, MariaDB TCP `127.0.0.1`, skip broken `setup_env.sh`, cmake `-j1`, IP patches, screen start).
 
 ---
 
-## 2) OpenKore (bot client) — other Linux box
+## 2) OpenKore (bot host)
 
-On your **second** Linux server (bot host), point OpenKore at Hercules:
+On your **other** Linux server:
 
 ```bash
 sudo apt-get update && sudo apt-get install -y git
 git clone https://github.com/xianmanuel26-cmyk/Ranarokx.git
 cd Ranarokx
-sudo bash scripts/install-openkore-linux.sh
-```
-
-Or with overrides:
-
-```bash
-sudo SERVER_IP=93.127.134.131 \
-  OK_USER=admin \
-  OK_PASS=admin123 \
+sudo SERVER_IP=93.127.134.131 OK_USER=admin OK_PASS=admin123 \
   bash scripts/install-openkore-linux.sh
 ```
 
-### Start OpenKore
+### Start
 
 ```bash
-# background (screen)
 openkore-ranarokx
 sudo -u openkore screen -r openkore
+```
 
-# or foreground
+Or:
+
+```bash
 sudo -u openkore -i
 cd /opt/openkore
 perl ./openkore.pl
@@ -56,27 +56,30 @@ perl ./openkore.pl
 
 | Setting | Value |
 |---------|--------|
-| Hercules IP | `93.127.134.131:6900` |
+| Target | `93.127.134.131:6900` |
 | Account | `admin` / `admin123` |
-| `serverType` | `kRO_RagexeRE_2018_11_21` (near PACKETVER 20190530) |
-| Install path | `/opt/openkore` |
+| `serverType` | `kRO_RagexeRE_2018_11_21` (near Hercules PACKETVER 20190530) |
+| Path | `/opt/openkore` |
 
-### If it fails to log in
-
-Try a nearby serverType:
+### Login packet errors?
 
 ```bash
-sudo SERVER_TYPE=kRO_RagexeRE_2020_03_04a bash scripts/install-openkore-linux.sh
+sudo SERVER_TYPE=kRO_RagexeRE_2020_03_04a SERVER_IP=93.127.134.131 \
+  bash scripts/install-openkore-linux.sh
 ```
 
-Or edit `/opt/openkore/tables/servers.txt` (block between `RANAROKX_BEGIN` / `RANAROKX_END`) and `/opt/openkore/control/config.txt`.
-
-Make sure the bot host can reach the game server TCP ports **6900, 6121, 5121**.
+Ensure the bot host can reach TCP **6900, 6121, 5121** on the game server.
 
 ---
 
+## Extra accounts (on Hercules host)
+
+```bash
+sudo bash scripts/create-game-account.sh myuser mypass
+sudo bash scripts/create-game-account.sh gm2 secret 99
+```
+
 ## Links
 
-- [Hercules](https://github.com/HerculesWS/Hercules)
-- [OpenKore](https://github.com/OpenKore/openkore)
-- [OpenKore wiki — How to run](https://openkore.com/wiki/How_to_run_OpenKore)
+- [Hercules](https://github.com/HerculesWS/Hercules) · [Building](https://github.com/HerculesWS/Hercules/wiki/Building)
+- [OpenKore](https://github.com/OpenKore/openkore) · [How to run](https://openkore.com/wiki/How_to_run_OpenKore)
