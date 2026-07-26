@@ -28,8 +28,9 @@ SERVER_PORT="${SERVER_PORT:-6900}"
 SERVER_TITLE="${SERVER_TITLE:-Ranarokx}"
 OK_USER="${OK_USER:-admin}"
 OK_PASS="${OK_PASS:-admin123}"
-# Closest OpenKore type at/before Hercules default PACKETVER 20190530
-SERVER_TYPE="${SERVER_TYPE:-kRO_RagexeRE_2018_11_21}"
+# Hercules PACKETVER 20190530 often sends account_server_info as 0AC4;
+# 2018-11-21 type was too old (Unknown switch: 0AC4). Prefer 2020-03-04a.
+SERVER_TYPE="${SERVER_TYPE:-kRO_RagexeRE_2020_03_04a}"
 CHAR_BLOCK_SIZE="${CHAR_BLOCK_SIZE:-155}"
 MASTER_VERSION="${MASTER_VERSION:-1}"
 VERSION="${VERSION:-55}"
