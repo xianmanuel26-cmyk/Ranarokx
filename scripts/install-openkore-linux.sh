@@ -56,7 +56,21 @@ install_deps() {
     libreadline-dev \
     libcurl4-openssl-dev \
     python3 \
+    python-is-python3 \
     screen curl ca-certificates
+}
+
+fix_quests_utf8() {
+  # OpenKore refuses non-UTF-8 table files and exits
+  local q="${OPENKORE_DIR}/tables/translated/kRO_english/quests.txt"
+  if [[ -f "${q}" ]]; then
+    log "Ensuring quests.txt is UTF-8"
+    if ! iconv -f UTF-8 -t UTF-8 "${q}" -o /dev/null 2>/dev/null; then
+      iconv -f LATIN1 -t UTF-8 "${q}" -o "${q}.utf8"
+      mv "${q}.utf8" "${q}"
+      chown "${RUN_USER}:${RUN_USER}" "${q}"
+    fi
+  fi
 }
 
 create_user() {
@@ -165,16 +179,12 @@ PY
 }
 
 compile_xstools() {
-  log "Compiling XSTools (first openkore run)"
-  # Non-interactive compile attempt; openkore compiles on first start
+  log "Compiling XSTools"
   sudo -u "${RUN_USER}" bash -lc "
     cd '${OPENKORE_DIR}'
-    # Trigger Makefile/XSTools build without full connect if possible
-    if [[ -f Makefile ]]; then
-      make -j\"\$(nproc)\" || true
-    fi
-    timeout 90 perl ./openkore.pl --help >/dev/null 2>&1 || true
-  " || true
+    make clean || true
+    make -j\"\$(nproc)\"
+  "
 }
 
 write_helpers() {
@@ -231,6 +241,7 @@ main() {
   create_user
   clone_openkore
   configure_server
+  fix_quests_utf8
   compile_xstools
   write_helpers
 
