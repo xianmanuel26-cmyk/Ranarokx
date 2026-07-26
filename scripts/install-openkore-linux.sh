@@ -28,9 +28,9 @@ SERVER_PORT="${SERVER_PORT:-6900}"
 SERVER_TITLE="${SERVER_TITLE:-Ranarokx}"
 OK_USER="${OK_USER:-admin}"
 OK_PASS="${OK_PASS:-admin123}"
-# Hercules PACKETVER 20190530 often sends account_server_info as 0AC4;
-# 2018-11-21 type was too old (Unknown switch: 0AC4). Prefer 2020-03-04a.
-SERVER_TYPE="${SERVER_TYPE:-kRO_RagexeRE_2020_03_04a}"
+# Classic Hercules login works better with 2018-11-21 + patched recvpackets
+# (2020 type can trigger token/0AE3 flow). Override if needed.
+SERVER_TYPE="${SERVER_TYPE:-kRO_RagexeRE_2018_11_21}"
 CHAR_BLOCK_SIZE="${CHAR_BLOCK_SIZE:-155}"
 MASTER_VERSION="${MASTER_VERSION:-1}"
 VERSION="${VERSION:-55}"
@@ -72,6 +72,51 @@ fix_quests_utf8() {
       chown "${RUN_USER}:${RUN_USER}" "${q}"
     fi
   fi
+}
+
+patch_hercules_recvpackets() {
+  # PACKETVER ~20190530 Hercules private-server packet lengths used in testing
+  local rp="${OPENKORE_DIR}/tables/kRO/recvpackets.txt"
+  [[ -f "${rp}" ]] || die "Missing ${rp}"
+  log "Patching kRO recvpackets.txt for Hercules"
+  local begin="# >>> RANAROKX_PACKETS_BEGIN"
+  local end="# <<< RANAROKX_PACKETS_END"
+  python3 - "${rp}" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+begin = "# >>> RANAROKX_PACKETS_BEGIN\n"
+end = "# <<< RANAROKX_PACKETS_END\n"
+block = begin + "\n".join([
+    "0AC4 0",
+    "0AE3 0",
+    "082D 0",
+    "08B9 12",
+    "099D 0",
+    "09A0 4",
+    "0AC5 156",
+    "0AC7 156",
+    "09E7 3",
+    "0B18 4",
+    "0ADE 6",
+    "0A23 -1",
+    "0ADC 6",
+    "0ADD 24",
+    "0AE0 30",
+    "0AE1 28",
+]) + "\n" + end
+text = path.read_text()
+if begin in text and end in text:
+    pre = text.split(begin, 1)[0]
+    post = text.split(end, 1)[1]
+    text = pre + block + post
+else:
+    if not text.endswith("\n"):
+        text += "\n"
+    text += "\n" + block
+path.write_text(text)
+PY
+  chown "${RUN_USER}:${RUN_USER}" "${rp}"
 }
 
 create_user() {
@@ -173,6 +218,23 @@ for line in Path(config_path).read_text().splitlines(True):
 for k, v in keys.items():
     if k not in seen:
         out.insert(0, f"{k} {v}\n")
+
+# When bot runs on the same host as Hercules, public map_ip is unreachable (NAT hairpin).
+if ip in ("127.0.0.1", "localhost"):
+    # replace or append forceMapIP
+    replaced = False
+    new_out = []
+    for line in out:
+        raw = line.rstrip("\n")
+        if raw.split(None, 1)[:1] == ["forceMapIP"]:
+            new_out.append("forceMapIP 127.0.0.1\n")
+            replaced = True
+        else:
+            new_out.append(line)
+    if not replaced:
+        new_out.insert(0, "forceMapIP 127.0.0.1\n")
+    out = new_out
+
 Path(config_path).write_text("".join(out))
 PY
 
@@ -243,6 +305,7 @@ main() {
   clone_openkore
   configure_server
   fix_quests_utf8
+  patch_hercules_recvpackets
   compile_xstools
   write_helpers
 
