@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Create a player (or GM) account in the Hercules login table.
+# Create a player or GM account in the Hercules login table.
 #
 # Usage:
 #   sudo bash scripts/create-game-account.sh <userid> <password> [group_id] [sex]
@@ -7,8 +7,6 @@
 # Examples:
 #   sudo bash scripts/create-game-account.sh alice secret123
 #   sudo bash scripts/create-game-account.sh admin secret123 99 M
-#
-# Defaults: DB_NAME=hercules, group_id=0, sex=M
 
 set -euo pipefail
 
@@ -28,9 +26,15 @@ if [[ "${SEX}" != "M" && "${SEX}" != "F" ]]; then
   exit 1
 fi
 
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "Run with sudo so we can use MariaDB root auth." >&2
+  exit 1
+fi
+
 mysql -u root "${DB_NAME}" <<SQL
 INSERT INTO \`login\` (\`userid\`, \`user_pass\`, \`sex\`, \`email\`, \`group_id\`)
-VALUES ('${USERID}', '${PASS}', '${SEX}', '${USERID}@localhost', ${GROUP_ID});
+VALUES ('${USERID}', '${PASS}', '${SEX}', '${USERID}@localhost', ${GROUP_ID})
+ON DUPLICATE KEY UPDATE \`user_pass\`=VALUES(\`user_pass\`), \`group_id\`=${GROUP_ID}, \`sex\`='${SEX}';
 SQL
 
-echo "Created account '${USERID}' (group_id=${GROUP_ID}) in database '${DB_NAME}'."
+echo "Account '${USERID}' ready (group_id=${GROUP_ID}) in database '${DB_NAME}'."
