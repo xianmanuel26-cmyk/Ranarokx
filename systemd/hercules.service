@@ -1,0 +1,19 @@
+[Unit]
+Description=Hercules Ragnarok Online (login/char/map/api)
+After=network.target mariadb.service mysql.service
+Wants=mariadb.service
+
+[Service]
+Type=forking
+User=hercuser
+Group=hercuser
+WorkingDirectory=/home/hercuser/Hercules
+ExecStart=/home/hercuser/Hercules/athena-start start
+ExecStop=/home/hercuser/Hercules/athena-start stop
+ExecReload=/home/hercuser/Hercules/athena-start restart
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target
