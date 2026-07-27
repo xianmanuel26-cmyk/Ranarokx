@@ -26,11 +26,12 @@ Do **not** treat a separate “OpenKore Linux VPS” as part of this project. Th
 sudo apt-get update && sudo apt-get install -y git
 git clone https://github.com/xianmanuel26-cmyk/Ranarokx.git
 cd Ranarokx
-sudo SERVER_IP=YOUR.PUBLIC.IP bash scripts/install-hercules-debian12.sh
+sudo SERVER_IP=173.208.138.66 bash scripts/install-hercules-debian12.sh
 ```
 
 | Item | Value |
 |------|--------|
+| Public IP | **`173.208.138.66`** |
 | Credentials | `/home/hercuser/hercules-credentials.txt` |
 | Accounts | `test`/`test123`, GM `admin`/`admin123` |
 | Ports | **6900 / 6121 / 5121** (TCP) |
