@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Install the Ranarokx registration site on the Hercules (Debian) host.
+# Install the Ranarokx registration site on Linux server #1 (Hercules game host).
+# Do NOT run this on the Windows RO client VPS.
 #
-# Usage (on game VPS):
+# Usage (on Hercules Linux host):
 #   cd /path/to/Ranarokx
 #   sudo bash scripts/install-registration-site.sh
 #

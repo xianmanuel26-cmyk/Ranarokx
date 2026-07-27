@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Hercules installer for Debian 12 — battle-tested for 1 CPU / 1 GB RAM
 #
+# Ranarokx = 2 servers only:
+#   1) THIS Linux host → Hercules / MariaDB / registration / optional OpenKore
+#   2) Windows host    → RO client only
+#
 # Incorporates fixes from a full manual install:
 #   - 2G swap before compile
 #   - MariaDB low-memory tuning
@@ -11,12 +15,11 @@
 #   - login_ip/char_ip/map_ip set in main conf files (not only import)
 #   - Optional screen start + test/GM accounts
 #
-# Usage (as root):
-#   curl -fsSL ... | bash          # or:
+# Usage (as root on Linux game host):
 #   sudo bash scripts/install-hercules-debian12.sh
 #
 # Common overrides:
-#   SERVER_IP=93.127.134.131       # public IP clients use (auto-detected if unset)
+#   SERVER_IP=YOUR.PUBLIC.IP       # public IP clients use (auto-detected if unset)
 #   DB_PASS=ragnarok
 #   HERC_PASS=ragnarok             # Linux password for hercuser
 #   PACKETVER=20190530             # leave empty for Hercules default
