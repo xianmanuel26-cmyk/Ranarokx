@@ -1,16 +1,29 @@
 # Ranarokx
 
-One-shot helpers for:
+## Servers (current setup)
 
-1. **Hercules** on a Debian 12 game VPS (1 GB RAM OK)
-2. **OpenKore** on a second Linux box, connected to that Hercules server
-3. **Registration website** on the same Hercules host (Nginx + PHP)
+| # | Role | OS | What runs here |
+|---|------|-----|----------------|
+| **1** | **Game host** | Linux | Hercules, MariaDB, registration site, optional OpenKore |
+| **2** | **Client host** | Windows | RO client (+ Cursor worker `windows-ro`) |
+
+There is **no third Linux “bot VPS”** in this setup. Anything that says “OpenKore VPS” or `vps-emydRO` as a separate game box is outdated.
+
+**Cursor workers**
+- Linux worker → must be on server **#1** (Hercules host) for installs/deploys
+- Windows worker → server **#2** (client only)
 
 ---
 
-## 1) Hercules (game server)
+One-shot helpers:
 
-On the **game** VPS:
+1. **Hercules** on the Linux game host
+2. **Registration website** on that same Linux host
+3. **OpenKore** (optional) on that same Linux host (`127.0.0.1`)
+
+---
+
+## 1) Hercules (Linux game host)
 
 ```bash
 sudo apt-get update && sudo apt-get install -y git
@@ -22,58 +35,28 @@ sudo SERVER_IP=YOUR.PUBLIC.IP bash scripts/install-hercules-debian12.sh
 Credentials: `/home/hercuser/hercules-credentials.txt`  
 Defaults: `test`/`test123`, GM `admin`/`admin123`, ports **6900 / 6121 / 5121**.
 
-The script applies the battle-tested fixes (swap, MariaDB TCP `127.0.0.1`, skip broken `setup_env.sh`, cmake `-j1`, IP patches, screen start).
-
 ---
 
-## 2) OpenKore (bot host)
+## 2) Registration site (same Linux game host)
 
-On your **other** Linux server:
-
-```bash
-sudo apt-get update && sudo apt-get install -y git
-git clone https://github.com/xianmanuel26-cmyk/Ranarokx.git
-cd Ranarokx
-sudo SERVER_IP=93.127.134.131 OK_USER=admin OK_PASS=admin123 \
-  bash scripts/install-openkore-linux.sh
-```
-
-### Start
+Creates accounts in the Hercules `login` table.
 
 ```bash
-openkore-ranarokx
-sudo -u openkore screen -r openkore
+cd /path/to/Ranarokx
+sudo bash scripts/install-registration-site.sh
 ```
 
-Or:
+Then open `http://YOUR.PUBLIC.IP/register.php` (TCP **80** must be open on host/NAT).
 
-```bash
-sudo -u openkore -i
-cd /opt/openkore
-perl ./openkore.pl
-```
+| Item | Path / note |
+|------|-------------|
+| Web root | `/var/www/ranarokx/public` |
+| Config | `/var/www/ranarokx/config.php` |
+| DB | `hercules` / `hercules` / `ragnarok` @ `127.0.0.1` |
 
-### Defaults
+Passwords are stored **plaintext** to match Hercules defaults. If you enable MD5 in login-server, set `'password_md5' => true` in `config.php`.
 
-| Setting | Value |
-|---------|--------|
-| Target | `93.127.134.131:6900` |
-| Account | `admin` / `admin123` |
-| `serverType` | `kRO_RagexeRE_2018_11_21` (near Hercules PACKETVER 20190530) |
-| Path | `/opt/openkore` |
-
-### Login packet errors?
-
-```bash
-sudo SERVER_TYPE=kRO_RagexeRE_2020_03_04a SERVER_IP=93.127.134.131 \
-  bash scripts/install-openkore-linux.sh
-```
-
-Ensure the bot host can reach TCP **6900, 6121, 5121** on the game server.
-
----
-
-## Extra accounts (on Hercules host)
+### Extra accounts (CLI)
 
 ```bash
 sudo bash scripts/create-game-account.sh myuser mypass
@@ -82,25 +65,41 @@ sudo bash scripts/create-game-account.sh gm2 secret 99
 
 ---
 
-## 3) Registration site (same Hercules host)
+## 3) OpenKore (optional, same Linux game host)
 
-Creates accounts in the Hercules `login` table via a classic Midgard-styled web page.
+Run on the **Hercules host**, not Windows:
 
 ```bash
-cd /path/to/Ranarokx   # or: git clone / pull this repo
-sudo bash scripts/install-registration-site.sh
+cd /path/to/Ranarokx
+sudo SERVER_IP=127.0.0.1 OK_USER=admin OK_PASS=admin123 \
+  bash scripts/install-openkore-linux.sh
 ```
 
-Then open `http://YOUR.PUBLIC.IP/register.php`.
+`SERVER_IP=127.0.0.1` is required when OpenKore is on the same machine (avoids hairpin NAT). The installer also sets `forceMapIP 127.0.0.1`.
 
-| Item | Path / note |
-|------|-------------|
-| Web root | `/var/www/ranarokx/public` |
-| Config | `/var/www/ranarokx/config.php` (DB user/pass) |
-| Defaults | DB `hercules` / user `hercules` / pass `ragnarok` @ `127.0.0.1` |
-| Port | HTTP **80** (open on host/NAT for public registration) |
+### Start
 
-Passwords are stored **plaintext** to match Hercules defaults and `create-game-account.sh`. If you enable MD5 in login-server, set `'password_md5' => true` in `config.php`.
+```bash
+openkore-ranarokx
+sudo -u openkore screen -r openkore
+```
+
+| Setting | Value |
+|---------|--------|
+| Target | `127.0.0.1:6900` |
+| Account | `admin` / `admin123` |
+| `serverType` | `kRO_RagexeRE_2018_11_21` (near PACKETVER 20190530) |
+| Path | `/opt/openkore` |
+
+---
+
+## 4) Windows client host
+
+- RO client for PACKETVER **20190530**
+- Cursor worker name: **`windows-ro`**
+- Points at the Linux game host **public IP** (ports 6900 / 6121 / 5121)
+
+Do **not** install Hercules, MariaDB, or the registration site on Windows.
 
 ## Links
 
