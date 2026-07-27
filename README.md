@@ -4,6 +4,7 @@ One-shot helpers for:
 
 1. **Hercules** on a Debian 12 game VPS (1 GB RAM OK)
 2. **OpenKore** on a second Linux box, connected to that Hercules server
+3. **Registration website** on the same Hercules host (Nginx + PHP)
 
 ---
 
@@ -78,6 +79,28 @@ Ensure the bot host can reach TCP **6900, 6121, 5121** on the game server.
 sudo bash scripts/create-game-account.sh myuser mypass
 sudo bash scripts/create-game-account.sh gm2 secret 99
 ```
+
+---
+
+## 3) Registration site (same Hercules host)
+
+Creates accounts in the Hercules `login` table via a classic Midgard-styled web page.
+
+```bash
+cd /path/to/Ranarokx   # or: git clone / pull this repo
+sudo bash scripts/install-registration-site.sh
+```
+
+Then open `http://YOUR.PUBLIC.IP/register.php`.
+
+| Item | Path / note |
+|------|-------------|
+| Web root | `/var/www/ranarokx/public` |
+| Config | `/var/www/ranarokx/config.php` (DB user/pass) |
+| Defaults | DB `hercules` / user `hercules` / pass `ragnarok` @ `127.0.0.1` |
+| Port | HTTP **80** (open on host/NAT for public registration) |
+
+Passwords are stored **plaintext** to match Hercules defaults and `create-game-account.sh`. If you enable MD5 in login-server, set `'password_md5' => true` in `config.php`.
 
 ## Links
 
