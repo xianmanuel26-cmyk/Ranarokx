@@ -29,11 +29,11 @@ cd ~/openkore
 
 ## 3) Add server block
 
-Append to `tables/servers.txt` (replace `YOUR.PUBLIC.IP`):
+Append to `tables/servers.txt` (current dedicated IP **`173.208.138.66`**):
 
 ```
 [Ragnax]
-ip YOUR.PUBLIC.IP
+ip 173.208.138.66
 port 6900
 master_version 1
 version 55
@@ -41,6 +41,14 @@ serverType kRO_RagexeRE_2018_11_21
 serverEncoding Western
 charBlockSize 155
 addTableFolders translated/kRO_english;kRO
+```
+
+### Quick IP update (if Ragnax already exists)
+
+```bash
+cd ~/openkore
+sed -i '/^\[Ragnax\]/,/^\[/{s/^ip .*/ip 173.208.138.66/;}' tables/servers.txt
+grep -A6 '^\[Ragnax\]' tables/servers.txt
 ```
 
 ## 4) Login config
@@ -187,7 +195,7 @@ export LD_PRELOAD=/data/data/com.termux/files/usr/lib/libperl.so
 perl openkore.pl
 ```
 
-If login times out on `YOUR.PUBLIC.IP:6900`, fix host/NAT port forwards on Linux #1 first.
+If login times out on `173.208.138.66:6900`, fix host/NAT / firewall on Linux #1 first (TCP 6900, 6121, 5121).
 
 ---
 

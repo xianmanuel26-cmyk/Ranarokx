@@ -20,7 +20,7 @@
 #   sudo bash scripts/install-hercules-debian12.sh
 #
 # Common overrides:
-#   SERVER_IP=YOUR.PUBLIC.IP       # public IP clients use (auto-detected if unset)
+#   SERVER_IP=173.208.138.66       # public IP clients use (auto-detected if unset)
 #   DB_PASS=ragnarok
 #   HERC_PASS=ragnarok             # Linux password for hercuser
 #   PACKETVER=20190530             # leave empty for Hercules default

@@ -52,7 +52,7 @@ cd /path/to/Ranarokx
 sudo bash scripts/install-registration-site.sh
 ```
 
-Open `http://YOUR.PUBLIC.IP/register.php` (TCP **80** on host/NAT).
+Open `http://173.208.138.66/register.php` (TCP **80** on host/NAT).
 
 | Item | Path / note |
 |------|-------------|
