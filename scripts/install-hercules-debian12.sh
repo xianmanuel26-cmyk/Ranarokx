@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Hercules installer for Debian 12 — battle-tested for 1 CPU / 1 GB RAM
 #
-# Ranarokx = 2 servers only:
-#   1) THIS Linux host → Hercules / MariaDB / registration / optional OpenKore
+# Ranarokx hosts:
+#   1) THIS Linux host → Hercules / MariaDB / registration
 #   2) Windows host    → RO client only
+#   3) Termux          → OpenKore (see docs/termux-openkore.md)
 #
 # Incorporates fixes from a full manual install:
 #   - 2G swap before compile

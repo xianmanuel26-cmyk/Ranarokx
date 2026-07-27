@@ -35,7 +35,7 @@ $tagline = $config['site']['tagline'];
 
     <section id="info" class="panel" style="width:min(560px,100%)">
       <h2>Enter Midgard</h2>
-      <p class="lead">Create a game account, then log in with the official client or OpenKore using your userid and password.</p>
+      <p class="lead">Create a game account, then log in with the RO client (Windows) or OpenKore (Termux).</p>
       <p class="lead" style="margin-bottom:0">Ports: <strong>6900</strong> / <strong>6121</strong> / <strong>5121</strong> · PACKETVER <strong>20190530</strong></p>
     </section>
 

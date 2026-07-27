@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# Install OpenKore on Debian/Ubuntu and point it at Hercules.
+# Install OpenKore on Debian/Ubuntu (OPTIONAL fallback only).
 #
-# Ranarokx = 2 servers only:
-#   1) Linux game host → Hercules (+ optional OpenKore on THIS same box)
-#   2) Windows host    → RO client only
+# Ranarokx hosts:
+#   1) Linux game host → Hercules / MariaDB / registration
+#   2) Windows host    → RO client
+#   3) Termux (phone)  → primary OpenKore — see docs/termux-openkore.md
 #
-# Recommended (same Linux game host):
+# This script is ONLY for running a bot on Linux #1 itself (same box as Hercules).
+# Prefer Termux (#3) for normal bot use.
+#
+# Same-host example:
 #   sudo SERVER_IP=127.0.0.1 bash scripts/install-openkore-linux.sh
 #
 # Defaults:
@@ -13,7 +17,7 @@
 #   SERVER_PORT=6900
 #   PACKETVER-compatible serverType ≈ kRO_RagexeRE_2018_11_21
 #   Accounts: admin/admin123 or test/test123
-#   forceMapIP 127.0.0.1 (same-host hairpin fix)
+#   forceMapIP 127.0.0.1 (same-host hairpin fix — do NOT use this on Termux)
 #
 # Overrides:
 #   SERVER_IP=x.x.x.x

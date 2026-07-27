@@ -1,29 +1,26 @@
 # Ranarokx
 
-## Servers (current setup)
+## Hosts (source of truth)
 
-| # | Role | OS | What runs here |
-|---|------|-----|----------------|
-| **1** | **Game host** | Linux | Hercules, MariaDB, registration site, optional OpenKore |
-| **2** | **Client host** | Windows | RO client (+ Cursor worker `windows-ro`) |
+| # | Role | Where | What runs here |
+|---|------|--------|----------------|
+| **1** | **Game** | Linux VPS | Hercules, MariaDB, registration site |
+| **2** | **Client** | Windows VPS | RO client (+ Cursor worker `windows-ro`) |
+| **3** | **Bot** | Android **Termux** | OpenKore |
 
-There is **no third Linux “bot VPS”** in this setup. Anything that says “OpenKore VPS” or `vps-emydRO` as a separate game box is outdated.
+Do **not** treat a separate “OpenKore Linux VPS” as part of this project. That old layout is retired.
 
-**Cursor workers**
-- Linux worker → must be on server **#1** (Hercules host) for installs/deploys
-- Windows worker → server **#2** (client only)
+**Where to run Cursor workers / installs**
 
----
-
-One-shot helpers:
-
-1. **Hercules** on the Linux game host
-2. **Registration website** on that same Linux host
-3. **OpenKore** (optional) on that same Linux host (`127.0.0.1`)
+| Task | Run on |
+|------|--------|
+| Hercules, registration site, MariaDB | **#1 Linux** |
+| RO client setup | **#2 Windows** |
+| OpenKore bot | **#3 Termux** (phone) |
 
 ---
 
-## 1) Hercules (Linux game host)
+## 1) Hercules — Linux (#1)
 
 ```bash
 sudo apt-get update && sudo apt-get install -y git
@@ -32,31 +29,14 @@ cd Ranarokx
 sudo SERVER_IP=YOUR.PUBLIC.IP bash scripts/install-hercules-debian12.sh
 ```
 
-Credentials: `/home/hercuser/hercules-credentials.txt`  
-Defaults: `test`/`test123`, GM `admin`/`admin123`, ports **6900 / 6121 / 5121**.
+| Item | Value |
+|------|--------|
+| Credentials | `/home/hercuser/hercules-credentials.txt` |
+| Accounts | `test`/`test123`, GM `admin`/`admin123` |
+| Ports | **6900 / 6121 / 5121** (TCP) |
+| PACKETVER | **20190530** |
 
----
-
-## 2) Registration site (same Linux game host)
-
-Creates accounts in the Hercules `login` table.
-
-```bash
-cd /path/to/Ranarokx
-sudo bash scripts/install-registration-site.sh
-```
-
-Then open `http://YOUR.PUBLIC.IP/register.php` (TCP **80** must be open on host/NAT).
-
-| Item | Path / note |
-|------|-------------|
-| Web root | `/var/www/ranarokx/public` |
-| Config | `/var/www/ranarokx/config.php` |
-| DB | `hercules` / `hercules` / `ragnarok` @ `127.0.0.1` |
-
-Passwords are stored **plaintext** to match Hercules defaults. If you enable MD5 in login-server, set `'password_md5' => true` in `config.php`.
-
-### Extra accounts (CLI)
+Extra accounts:
 
 ```bash
 sudo bash scripts/create-game-account.sh myuser mypass
@@ -65,41 +45,62 @@ sudo bash scripts/create-game-account.sh gm2 secret 99
 
 ---
 
-## 3) OpenKore (optional, same Linux game host)
-
-Run on the **Hercules host**, not Windows:
+## 2) Registration site — Linux (#1)
 
 ```bash
 cd /path/to/Ranarokx
-sudo SERVER_IP=127.0.0.1 OK_USER=admin OK_PASS=admin123 \
-  bash scripts/install-openkore-linux.sh
+sudo bash scripts/install-registration-site.sh
 ```
 
-`SERVER_IP=127.0.0.1` is required when OpenKore is on the same machine (avoids hairpin NAT). The installer also sets `forceMapIP 127.0.0.1`.
+Open `http://YOUR.PUBLIC.IP/register.php` (TCP **80** on host/NAT).
 
-### Start
+| Item | Path / note |
+|------|-------------|
+| Web root | `/var/www/ranarokx/public` |
+| Config | `/var/www/ranarokx/config.php` |
+| DB | `hercules` / `hercules` / `ragnarok` @ `127.0.0.1` |
 
-```bash
-openkore-ranarokx
-sudo -u openkore screen -r openkore
-```
-
-| Setting | Value |
-|---------|--------|
-| Target | `127.0.0.1:6900` |
-| Account | `admin` / `admin123` |
-| `serverType` | `kRO_RagexeRE_2018_11_21` (near PACKETVER 20190530) |
-| Path | `/opt/openkore` |
+Passwords are **plaintext** (matches Hercules defaults). For MD5 login-server mode, set `'password_md5' => true` in `config.php`.
 
 ---
 
-## 4) Windows client host
+## 3) OpenKore — Termux (#3)
 
-- RO client for PACKETVER **20190530**
-- Cursor worker name: **`windows-ro`**
-- Points at the Linux game host **public IP** (ports 6900 / 6121 / 5121)
+Primary bot host is **Termux on your phone**, not Windows and not a second Linux VPS.
 
-Do **not** install Hercules, MariaDB, or the registration site on Windows.
+Guide: **[docs/termux-openkore.md](docs/termux-openkore.md)**
+
+Summary:
+- Clone OpenKore in Termux, point `servers.txt` at Linux **#1 public IP**
+- `serverType kRO_RagexeRE_2018_11_21`, patched `recvpackets`, UTF-8 `quests.txt`
+- Do **not** set `forceMapIP 127.0.0.1` on Termux (that is only for same-host Linux)
+- Needs TCP **6900 / 6121 / 5121** reachable from the phone network
+
+Optional fallback only (same Linux #1 box): `scripts/install-openkore-linux.sh` with `SERVER_IP=127.0.0.1`.
+
+---
+
+## 4) RO client — Windows (#2)
+
+- Client matching PACKETVER **20190530**
+- Cursor worker: **`windows-ro`**
+- Connect to Linux **#1 public IP** (ports 6900 / 6121 / 5121)
+
+Do **not** install Hercules, MariaDB, registration, or OpenKore on Windows.
+
+---
+
+## Repo map
+
+| Path | Purpose | Host |
+|------|---------|------|
+| `scripts/install-hercules-debian12.sh` | Game server | #1 Linux |
+| `scripts/install-registration-site.sh` | Web register | #1 Linux |
+| `scripts/create-game-account.sh` | CLI accounts | #1 Linux |
+| `scripts/install-openkore-linux.sh` | Optional same-host bot | #1 Linux only |
+| `docs/termux-openkore.md` | Phone OpenKore | #3 Termux |
+| `website/` | Registration UI | deployed on #1 |
+| `systemd/hercules.service` | Optional systemd unit | #1 Linux |
 
 ## Links
 
